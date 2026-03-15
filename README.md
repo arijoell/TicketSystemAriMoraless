@@ -1,4 +1,4 @@
-# Ticket System AriMorales
+# Ticket System AriMoraless
 
 El sistema se desarrolla en **Visual Studio 2026**, utilizando **.NET 10 y C# 14**, incorporando autenticación con **Individual Accounts** y persistencia de datos mediante **SQL Server con Entity Framework Core**.
 
