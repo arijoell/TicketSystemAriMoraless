@@ -1,164 +1,85 @@
 # Ticket System AriMoraless
 
-El sistema se desarrolla en **Visual Studio 2026**, utilizando **.NET 10 y C# 14**, incorporando autenticación con **Individual Accounts** y persistencia de datos mediante **SQL Server con Entity Framework Core**.
+## Descripción
+
+Support Ticket System es una aplicación web desarrollada en Blazor que permite a los usuarios crear y gestionar tickets de soporte técnico. El sistema simula un entorno organizacional donde empleados pueden reportar problemas y el equipo técnico puede gestionarlos.
 
 ---
 
-#  Project Overview
+## Tecnologías Utilizadas
 
-Support Ticket System es una plataforma Web interna para la gestión de tickets de soporte técnico, orientada a entornos organizacionales donde múltiples departamentos requieren reportar incidencias tecnológicas y recibir atención estructurada por parte del equipo de soporte.
-
----
-
-# Technology Stack
-
-* Visual Studio 2026
-* .NET 10
-* C# 14
-* Blazor Web App (Unified Template)
-* Interactive Server Render Mode
-* ASP.NET Core Identity (Individual Accounts)
-* Entity Framework Core
-* SQL Server
-* Git
-* GitHub
+- Visual Studio 2026  
+- .NET 10  
+- C# 14  
+- Blazor Web App (Interactive Server)  
+- ASP.NET Core Identity  
+- Entity Framework Core  
+- SQL Server (LocalDB)  
+- Git y GitHub  
 
 ---
 
-#  Project Architecture
+## Funcionalidades Implementadas
 
-Este proyecto utiliza la estructura de la plantilla unificada **Blazor Web App (Interactive Server)**.
+### 🔐 Autenticación
+- Registro de usuarios
+- Login
+- Manejo de sesiones con ASP.NET Identity
 
-Características principales del proyecto:
+### 🎫 Sistema de Tickets
+- Crear tickets
+- Seleccionar categoría
+- Asignar prioridad
+- Guardado en base de datos
 
-* Single project structure
-* Server-side execution
-* Built-in Identity system
-* Integración con Entity Framework Core
+### 🗂 Categorías
+- Hardware
+- Software
+- Network
 
----
+### 👤 Roles del Sistema
+- Admin
+- Technician
+- Employee
 
-#  Authentication & Authorization
-
-La autenticación está configurada utilizando:
-
-* Individual Accounts
-* ASP.NET Core Identity
-* SQL Server database
-* Restricciones de interfaz basadas en roles
-
----
-
-# 🗄 Database
-
-## Provider
-
-SQL Server (LocalDB para desarrollo)
-
-## Current Tables
-
-Tablas de usuarios generadas por **ASP.NET Identity**:
-
-* AspNetUsers
-* AspNetRoles
-* AspNetUserRoles
-* AspNetUserClaims
-* AspNetUserLogins
-* AspNetUserTokens
+Se implementó control de acceso utilizando roles en la interfaz.
 
 ---
 
-#  Roles del sistema (Planeados)
+## Base de Datos
 
-Los roles del sistema serán:
+Se utilizó SQL Server con Entity Framework Core.
 
-* Admin
-* Technician
-* Employee
-
-Estos roles serán implementados en módulos posteriores.
-
----
-
-# 🗺 Hoja de Ruta del desarrollo (Development Roadmap)
-
-| Módulo   | Descripción                                 | Estado       |
-| -------- | ------------------------------------------- | ------------ |
-| Módulo 1 | Creación del Proyecto SystemLastName        | ✅ Completado |
-| Módulo 2 | Fundamentos de EF Core en Blazor Web App    | ✅ Completado |
-| Módulo 3 | Modelado del Dominio del Sistema de Tickets | ⏳ Pending    |
-| Módulo 4 | CRUD Básico de Tickets                      | ⏳ Pending    |
-| Módulo 5 | Sistema de Roles y Seguridad                | ⏳ Pending    |
-| Módulo 6 | Deployment                                  | ⏳ Pending    |
+### Tablas principales:
+- AspNetUsers
+- AspNetRoles
+- AspNetUserRoles
+- Tickets
+- Categories
 
 ---
 
-# 🚀 Características Implementadas
+## Evidencia del Sistema
 
-## Módulo 1: Creación del Proyecto SystemLastName
+A continuación se muestran capturas del sistema en funcionamiento:
 
-* Blazor Web App proyecto creado
-* Interactive Server enabled
-* Identity configurado
-* Registro de usuarios funcionando
-
-### Checkpoint
-
-* ✔ Proyecto Blazor Web App creado con .NET 10 y C# 14
-* ✔ Uso de **App.razor**, **MainLayout.razor** y **Home.razor**
-* ✔ Personalización básica de la UI
+1. Pantalla de inicio (Home)
+2. Registro de usuario
+3. Login
+4. Usuario autenticado
+5. Creación de Ticket
+6. Vista de base de datos (SQL Server)
+7. Tabla de usuarios (AspNetUsers)
 
 ---
 
-## Módulo 2: Fundamentos de EF Core en Blazor Web App
+## Ejecución del Proyecto
 
-* Base de datos configurada correctamente
-* Migraciones iniciales creadas
-* Conexión entre Blazor y EF Core funcionando
+### Requisitos
+- Visual Studio 2026  
+- .NET 10 SDK  
+- SQL Server LocalDB  
 
-## Checkpoint
-
-* ✔ Conexión establecida con SQL Server local
-* ✔ Uso de Primary Constructors en DbContext
-* ✔ Base de datos creada mediante migraciones
-
----
-
-#  Historia de Migraciones
-
-* InitialIdentityMigration
-* AddTicketEntity
-
----
-
-#  Getting Started
-
-## Requirements
-
-Para ejecutar el proyecto se necesita:
-
-* Visual Studio 2026
-* .NET 10 SDK
-* SQL Server LocalDB
-
----
-
-## Run the Project
-
-El proyecto se puede ejecutar de dos maneras.
-
-### Desde Visual Studio
-
+### Ejecutar en Visual Studio
 Presionar:
 
-Ctrl + F5
-
-### Desde terminal
-
-```bash
-dotnet run
-```
-
-#  Licencia
-
-Proyecto educativo desarrollado para el curso de FullStack.
