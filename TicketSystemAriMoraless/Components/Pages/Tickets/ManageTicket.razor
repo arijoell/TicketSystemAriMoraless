@@ -1,0 +1,85 @@
+﻿@page "/tickets/manage/{TicketId:int}"
+
+@using TicketSystemAriMoraless.Data
+@using TicketSystemAriMoraless.Services
+@using TicketSystemAriMoraless.Enums
+
+@inject TicketService TicketService
+@inject NavigationManager Navigation
+
+<h3>Manage Ticket</h3>
+
+@if (ticket == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <div>
+        <h4>@ticket.Title</h4>
+        <p>@ticket.Description</p>
+        <p><b>Status:</b> @ticket.Status</p>
+
+        <hr />
+
+        <!-- ADMIN -->
+        <h5>Asignar Técnico</h5>
+        <select @bind="selectedTechId">
+            <option value="">-- Selecciona técnico --</option>
+            @foreach (var tech in technicians)
+            {
+                <option value="@tech.Id">@tech.Email</option>
+            }
+        </select>
+
+        <button @onclick="Assign">Asignar</button>
+
+        <hr />
+
+        <!-- TECNICO -->
+        <h5>Cambiar Estado</h5>
+
+        <button @onclick="() => UpdateStatus(TicketStatus.InProgress)">
+            In Progress
+        </button>
+
+        <button @onclick="() => UpdateStatus(TicketStatus.Resolved)">
+            Resolved
+        </button>
+    </div>
+}
+
+@code {
+    [Parameter] public int TicketId { get; set; }
+
+    private Ticket? ticket;
+    private List<ApplicationUser> technicians = new();
+    private string selectedTechId = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ticket = await TicketService.GetTicketByIdAsync(TicketId);
+        technicians = await TicketService.GetTechniciansAsync();
+    }
+
+    async Task Assign()
+    {
+        if (!string.IsNullOrEmpty(selectedTechId))
+        {
+            await TicketService.UpdateTicketStatusAsync(
+                TicketId,
+                TicketStatus.InProgress,
+                selectedTechId
+            );
+
+            Navigation.NavigateTo("/admin/dashboard");
+        }
+    }
+
+    async Task UpdateStatus(TicketStatus status)
+    {
+        await TicketService.UpdateTicketStatusAsync(TicketId, status);
+
+        ticket = await TicketService.GetTicketByIdAsync(TicketId);
+    }
+}

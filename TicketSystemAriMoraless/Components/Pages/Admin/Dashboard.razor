@@ -1,0 +1,52 @@
+﻿@page "/admin/dashboard"
+@using TicketSystemAriMoraless.Data
+@using Microsoft.AspNetCore.Authorization
+@inject TicketSystemAriMoraless.Services.TicketService TicketService
+@inject NavigationManager Navigation
+
+<h3>Admin Dashboard</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Technician</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var ticket in allTickets)
+        {
+            <tr>
+                <td>@ticket.Title</td>
+                <td>@ticket.Author?.Email</td>
+                <td>@ticket.Category?.Name</td>
+                <td>@ticket.Status</td>
+                <td>@ticket.Technician?.Email</td>
+                <td>
+                    <button class="btn btn-primary"
+                            @onclick="() => Manage(ticket.Id)">
+                        Manage
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Ticket> allTickets = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        allTickets = await TicketService.GetAllTicketsAsync();
+    }
+
+    void Manage(int id)
+    {
+        Navigation.NavigateTo($"/tickets/manage/{id}");
+    }
+}
