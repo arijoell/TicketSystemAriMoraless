@@ -1,6 +1,7 @@
 ﻿using TicketSystemAriMoraless.Components;
 using TicketSystemAriMoraless.Components.Account;
 using TicketSystemAriMoraless.Data;
+using TicketSystemAriMoraless.Models; 
 using TicketSystemAriMoraless.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;

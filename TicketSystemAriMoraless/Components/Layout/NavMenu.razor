@@ -15,57 +15,73 @@
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
+                <span class="bi bi-house-door-fill"></span> Home
             </NavLink>
         </div>
 
-        <AuthorizeView>
+        <!-- 🔥 FIX PRINCIPAL AQUÍ -->
+        <AuthorizeView Context="authContext">
             <Authorized>
+
+                <!-- CREAR TICKET -->
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="tickets/create">
-                        <span class="bi bi-plus-square-fill" aria-hidden="true"></span> New Ticket
+                        <span class="bi bi-plus-square-fill"></span> New Ticket
                     </NavLink>
                 </div>
 
+                <!-- MIS TICKETS -->
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="tickets/my-list">
-                        <span class="bi bi-list-ul" aria-hidden="true"></span> My Tickets
+                        <span class="bi bi-list-ul"></span> My Tickets
                     </NavLink>
                 </div>
 
+                <!-- 🔥 ADMIN -->
                 <AuthorizeView Roles="@Roles.Admin" Context="adminContext">
+
                     <div class="nav-item px-3">
                         <NavLink class="nav-link" href="admin/dashboard">
-                            <span class="bi bi-shield-lock-fill" aria-hidden="true"></span> Admin Panel
+                            <span class="bi bi-speedometer2"></span> Dashboard
                         </NavLink>
                     </div>
+
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="admin/users">
+                            <span class="bi bi-people"></span> User Management
+                        </NavLink>
+                    </div>
+
                 </AuthorizeView>
 
+                <!-- LOGOUT -->
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
                         <input type="hidden" name="returnUrl" value="@currentUrl" />
                         <button type="submit" class="nav-link btn btn-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                            <span class="bi bi-arrow-bar-left"></span> Logout
                         </button>
                     </form>
                 </div>
 
+                <!-- 🔥 AQUÍ TAMBIÉN CAMBIA context -->
                 <div class="nav-item px-3">
-                    <span class="nav-link">@context.User.Identity?.Name</span>
+                    <span class="nav-link">@authContext.User.Identity?.Name</span>
                 </div>
+
             </Authorized>
 
             <NotAuthorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Register
+                        <span class="bi bi-person-badge"></span> Register
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                        <span class="bi bi-person-badge"></span> Login
                     </NavLink>
                 </div>
             </NotAuthorized>

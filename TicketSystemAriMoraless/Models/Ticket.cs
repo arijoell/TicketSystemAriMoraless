@@ -1,5 +1,6 @@
-﻿using TicketSystemAriMoraless.Enums;
-namespace TicketSystemAriMoraless.Data;
+﻿using TicketSystemAriMoraless.Data;
+using TicketSystemAriMoraless.Enums;
+namespace TicketSystemAriMoraless.Models;
 
 public class Ticket
 {

@@ -1,4 +1,4 @@
-﻿namespace TicketSystemAriMoraless.Data;
+﻿namespace TicketSystemAriMoraless.Models;
 
 public class Category
 {

@@ -1,0 +1,124 @@
+﻿@page "/admin/users"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using TicketSystemAriMoraless.Data
+@using TicketSystemAriMoraless.Services
+@inject TicketService TicketService
+@inject UserManager<ApplicationUser> UserManager
+@attribute [Authorize(Roles = Roles.Admin)]
+@rendermode InteractiveServer
+
+<PageTitle>User Management</PageTitle>
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h3>User Management</h3>
+            <p class="text-muted mb-0">Manage system access and assign technical roles.</p>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <p>Cargando usuarios y roles...</p>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>User Information</th>
+                            <th>Current Role</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var user in users)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@user.Email</strong>
+                                </td>
+
+                                <td>
+                                    <span class="badge @GetRoleBadgeClass(userRoles[user.Id])">
+                                        @userRoles[user.Id]
+                                    </span>
+                                </td>
+
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary me-2"
+                                            @onclick="() => UpdateUserRole(user, Roles.Technician)">
+                                        Make Tech
+                                    </button>
+
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            @onclick="() => UpdateUserRole(user, Roles.Employee)">
+                                        Make Employee
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ApplicationUser> users = new();
+    private Dictionary<string, string> userRoles = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+
+        users = await TicketService.GetAllUsersAsync();
+        userRoles.Clear();
+
+        foreach (var user in users)
+        {
+            var roles = await UserManager.GetRolesAsync(user);
+            userRoles[user.Id] = roles.FirstOrDefault() ?? "No Role";
+        }
+
+        isLoading = false;
+    }
+
+    private string GetRoleBadgeClass(string role) => role switch
+    {
+        Roles.Admin => "bg-dark",
+        Roles.Technician => "bg-primary",
+        Roles.Employee => "bg-secondary",
+        _ => "bg-light text-dark border"
+    };
+
+    private async Task UpdateUserRole(ApplicationUser user, string newRole)
+    {
+        var freshUser = await UserManager.FindByIdAsync(user.Id);
+
+        if (freshUser != null)
+        {
+            var currentRoles = await UserManager.GetRolesAsync(freshUser);
+
+            if (currentRoles.Any())
+            {
+                await UserManager.RemoveFromRolesAsync(freshUser, currentRoles);
+            }
+
+            await UserManager.AddToRoleAsync(freshUser, newRole);
+
+            await LoadData();
+        }
+    }
+}

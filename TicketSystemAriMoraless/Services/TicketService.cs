@@ -2,19 +2,18 @@
 using TicketSystemAriMoraless.Data;
 using TicketSystemAriMoraless.Enums;
 using System.Security.Claims;
+using TicketSystemAriMoraless.Models;
 
 namespace TicketSystemAriMoraless.Services;
 
 public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
 {
-    // 🔹 Obtener categorías
     public async Task<List<Category>> GetCategoriesAsync()
     {
         using var context = dbFactory.CreateDbContext();
         return await context.Categories.ToListAsync();
     }
 
-    // 🔹 Crear ticket
     public async Task CreateTicketAsync(Ticket ticket)
     {
         using var context = dbFactory.CreateDbContext();
@@ -22,7 +21,6 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
         await context.SaveChangesAsync();
     }
 
-    // 🔹 Obtener tickets según el usuario
     public async Task<List<Ticket>> GetTicketsForUserAsync(ClaimsPrincipal user)
     {
         using var context = dbFactory.CreateDbContext();
@@ -53,7 +51,6 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
         }
     }
 
-    // 🔹 ADMIN - ver todos los tickets
     public async Task<List<Ticket>> GetAllTicketsAsync()
     {
         using var context = dbFactory.CreateDbContext();
@@ -66,7 +63,6 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
             .ToListAsync();
     }
 
-    // 🔹 Actualizar ticket completo
     public async Task UpdateTicketAsync(Ticket ticket)
     {
         using var context = dbFactory.CreateDbContext();
@@ -77,7 +73,6 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
         await context.SaveChangesAsync();
     }
 
-    // 🔹 Obtener usuarios por rol
     public async Task<List<ApplicationUser>> GetUsersByRoleAsync(string roleName)
     {
         using var context = dbFactory.CreateDbContext();
@@ -95,7 +90,6 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
             .ToListAsync();
     }
 
-    // 🔹 Obtener ticket por ID
     public async Task<Ticket?> GetTicketByIdAsync(int id)
     {
         using var context = dbFactory.CreateDbContext();
@@ -107,7 +101,6 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
             .FirstOrDefaultAsync(t => t.Id == id);
     }
 
-    // 🔹 Obtener técnicos
     public async Task<List<ApplicationUser>> GetTechniciansAsync()
     {
         using var context = dbFactory.CreateDbContext();
@@ -125,7 +118,6 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
             .ToListAsync();
     }
 
-    // 🔹 Asignar técnico / cambiar estado
     public async Task UpdateTicketStatusAsync(int ticketId, TicketStatus newStatus, string? technicianId = null)
     {
         using var context = dbFactory.CreateDbContext();
@@ -141,5 +133,28 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
         ticket.UpdatedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
+    }
+
+    public async Task<Dictionary<string, int>> GetTicketStatsAsync()
+    {
+        using var context = dbFactory.CreateDbContext();
+
+        return new Dictionary<string, int>
+        {
+            ["Total"] = await context.Tickets.CountAsync(),
+            ["Open"] = await context.Tickets.CountAsync(t => t.Status == TicketStatus.Open),
+            ["InProgress"] = await context.Tickets.CountAsync(t => t.Status == TicketStatus.InProgress),
+            ["Resolved"] = await context.Tickets.CountAsync(t => t.Status == TicketStatus.Resolved),
+            ["Urgent"] = 0
+        };
+    }
+
+    public async Task<List<ApplicationUser>> GetAllUsersAsync()
+    {
+        using var context = dbFactory.CreateDbContext();
+
+        return await context.Users
+            .OrderBy(u => u.Email)
+            .ToListAsync();
     }
 }

@@ -1,13 +1,57 @@
 ﻿@page "/admin/dashboard"
-@using TicketSystemAriMoraless.Data
 @using Microsoft.AspNetCore.Authorization
+@using TicketSystemAriMoraless.Data
+@using TicketSystemAriMoraless.Enums
+@using TicketSystemAriMoraless.Models
 @inject TicketSystemAriMoraless.Services.TicketService TicketService
 @inject NavigationManager Navigation
 
-<h3>Admin Dashboard</h3>
+@attribute [Authorize(Roles = Roles.Admin)]
 
-<table class="table">
-    <thead>
+<h3 class="mb-3">Admin Dashboard</h3>
+
+<!-- 🔥 CARDS DE ESTADISTICAS -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6>Total Tickets</h6>
+                <h3>@stats["Total"]</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h6>Open / In Progress</h6>
+                <h3>@(stats["Open"] + stats["InProgress"])</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6>Resolved</h6>
+                <h3>@stats["Resolved"]</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6>Urgent</h6>
+                <h3>@stats["Urgent"]</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🔥 TABLA -->
+<table class="table table-hover">
+    <thead class="table-light">
         <tr>
             <th>Title</th>
             <th>Author</th>
@@ -24,10 +68,27 @@
                 <td>@ticket.Title</td>
                 <td>@ticket.Author?.Email</td>
                 <td>@ticket.Category?.Name</td>
-                <td>@ticket.Status</td>
-                <td>@ticket.Technician?.Email</td>
+
+                <!-- 🔥 STATUS BONITO -->
                 <td>
-                    <button class="btn btn-primary"
+                    <span class="badge @GetStatusBadge(ticket.Status)">
+                        @ticket.Status
+                    </span>
+                </td>
+
+                <td>
+                    @if (ticket.Technician != null)
+                    {
+                        @ticket.Technician.Email
+                    }
+                    else
+                    {
+                        <span class="text-muted">Unassigned</span>
+                    }
+                </td>
+
+                <td>
+                    <button class="btn btn-sm btn-primary"
                             @onclick="() => Manage(ticket.Id)">
                         Manage
                     </button>
@@ -40,13 +101,31 @@
 @code {
     private List<Ticket> allTickets = new();
 
+    private Dictionary<string, int> stats = new()
+    {
+        ["Total"] = 0,
+        ["Open"] = 0,
+        ["InProgress"] = 0,
+        ["Resolved"] = 0,
+        ["Urgent"] = 0
+    };
+
     protected override async Task OnInitializedAsync()
     {
         allTickets = await TicketService.GetAllTicketsAsync();
+        stats = await TicketService.GetTicketStatsAsync();
     }
 
     void Manage(int id)
     {
         Navigation.NavigateTo($"/tickets/manage/{id}");
     }
+
+    string GetStatusBadge(TicketStatus status) => status switch
+    {
+        TicketStatus.Open => "bg-info",
+        TicketStatus.InProgress => "bg-warning text-dark",
+        TicketStatus.Resolved => "bg-success",
+        _ => "bg-secondary"
+    };
 }
