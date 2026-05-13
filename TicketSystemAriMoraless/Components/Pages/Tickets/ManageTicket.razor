@@ -1,5 +1,7 @@
 ﻿@page "/tickets/manage/{TicketId:int}"
 
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @using TicketSystemAriMoraless.Data
 @using TicketSystemAriMoraless.Enums
 @using TicketSystemAriMoraless.Models
@@ -7,8 +9,16 @@
 
 @inject TicketService TicketService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthProvider
 
 <h3>Manage Ticket</h3>
+
+@if (!string.IsNullOrEmpty(feedbackMessage))
+{
+    <div class="alert alert-success">
+        @feedbackMessage
+    </div>
+}
 
 @if (ticket == null)
 {
@@ -16,51 +26,184 @@
 }
 else
 {
-    <div>
+    <div class="card p-4">
+
         <h4>@ticket.Title</h4>
+
         <p>@ticket.Description</p>
-        <p><b>Status:</b> @ticket.Status</p>
+
+        <p>
+            <b>Status:</b> @ticket.Status
+        </p>
 
         <hr />
 
-        <!-- ADMIN -->
+        <h5>Conversation History</h5>
+
+        <div style="border:1px solid lightgray; padding:15px; height:300px; overflow-y:auto;">
+
+            @if (!comments.Any())
+            {
+                <p>No messages yet.</p>
+            }
+            else
+            {
+                @foreach (var c in comments)
+                {
+                    <div class="mb-3">
+
+                        <b>@c.User?.Email</b>
+
+                        <br />
+
+                        <small>@c.CreatedAt.ToLocalTime()</small>
+
+                        <p>@c.Content</p>
+
+                    </div>
+                }
+            }
+
+        </div>
+
+        <br />
+
+        <input class="form-control"
+               placeholder="Write a comment..."
+               @bind="newCommentContent" />
+
+        <br />
+
+        <button class="btn btn-primary"
+                @onclick="SendComment">
+            Send
+        </button>
+
+        <hr />
+
         <h5>Asignar Técnico</h5>
-        <select @bind="selectedTechId">
-            <option value="">-- Selecciona técnico --</option>
+
+        <select class="form-select" @bind="selectedTechId">
+
+            <option value="">
+                -- Selecciona técnico --
+            </option>
+
             @foreach (var tech in technicians)
             {
-                <option value="@tech.Id">@tech.Email</option>
+                <option value="@tech.Id">
+                    @tech.Email
+                </option>
             }
+
         </select>
 
-        <button @onclick="Assign">Asignar</button>
+        <br />
+
+        <button class="btn btn-success"
+                @onclick="Assign">
+            Asignar
+        </button>
 
         <hr />
 
-        <!-- TECNICO -->
         <h5>Cambiar Estado</h5>
 
-        <button @onclick="() => UpdateStatus(TicketStatus.InProgress)">
-            In Progress
-        </button>
+        @if (ticket.Status == TicketStatus.Open)
+        {
+            <button class="btn btn-warning"
+                    @onclick="() => UpdateStatus(TicketStatus.InProgress)">
+                Start Work
+            </button>
+        }
 
-        <button @onclick="() => UpdateStatus(TicketStatus.Resolved)">
-            Resolved
-        </button>
+        @if (ticket.Status == TicketStatus.InProgress)
+        {
+            <button class="btn btn-success"
+                    @onclick="() => UpdateStatus(TicketStatus.Resolved)">
+                Mark as Resolved
+            </button>
+        }
+
+        @if (ticket.Status == TicketStatus.Resolved)
+        {
+            <div class="alert alert-info mt-3">
+                This ticket is closed.
+            </div>
+
+            <button class="btn btn-secondary"
+                    @onclick="() => UpdateStatus(TicketStatus.Open)">
+                Re-open
+            </button>
+        }
+
     </div>
 }
 
 @code {
+
     [Parameter] public int TicketId { get; set; }
 
     private Ticket? ticket;
+
     private List<ApplicationUser> technicians = new();
+
+    private List<TicketComment> comments = new();
+
     private string selectedTechId = "";
+
+    private string newCommentContent = "";
+
+    private string feedbackMessage = "";
+
+    private string currentUserId = "";
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+
+        var user = authState.User;
+
+        currentUserId =
+            user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
         ticket = await TicketService.GetTicketByIdAsync(TicketId);
+
         technicians = await TicketService.GetTechniciansAsync();
+
+        comments = await TicketService.GetCommentsAsync(TicketId);
+
+        if (ticket?.TechnicianId != null)
+        {
+            selectedTechId = ticket.TechnicianId;
+        }
+    }
+
+    async Task SendComment()
+    {
+        if (string.IsNullOrWhiteSpace(newCommentContent))
+            return;
+
+        var comment = new TicketComment
+        {
+            Content = newCommentContent,
+            TicketId = TicketId,
+            UserId = currentUserId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await TicketService.AddCommentAsync(comment);
+
+        newCommentContent = "";
+
+        feedbackMessage = "Comment posted successfully.";
+
+        comments = await TicketService.GetCommentsAsync(TicketId);
     }
 
     async Task Assign()
@@ -73,7 +216,9 @@ else
                 selectedTechId
             );
 
-            Navigation.NavigateTo("/admin/dashboard");
+            feedbackMessage = "Technician assigned.";
+
+            await LoadData();
         }
     }
 
@@ -81,6 +226,8 @@ else
     {
         await TicketService.UpdateTicketStatusAsync(TicketId, status);
 
-        ticket = await TicketService.GetTicketByIdAsync(TicketId);
+        feedbackMessage = $"Ticket marked as {status}.";
+
+        await LoadData();
     }
 }

@@ -135,6 +135,25 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
         await context.SaveChangesAsync();
     }
 
+    public async Task AddCommentAsync(TicketComment comment)
+    {
+        using var context = dbFactory.CreateDbContext();
+
+        context.TicketComments.Add(comment);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task<List<TicketComment>> GetCommentsAsync(int ticketId)
+    {
+        using var context = dbFactory.CreateDbContext();
+
+        return await context.TicketComments
+            .Include(c => c.User)
+            .Where(c => c.TicketId == ticketId)
+            .OrderBy(c => c.CreatedAt)
+            .ToListAsync();
+    }
+
     public async Task<Dictionary<string, int>> GetTicketStatsAsync()
     {
         using var context = dbFactory.CreateDbContext();
