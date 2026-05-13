@@ -17,8 +17,14 @@
 <body>
     <Routes @rendermode="PageRenderMode" />
     <ReconnectModal />
+
     <script src="@Assets["_framework/blazor.web.js"]"></script>
-    <script src="@Assets["Components/Account/Shared/PasskeySubmit.razor.js"]" type="module"></script>
+
+    <script src="@Assets["Components/Account/Shared/PasskeySubmit.razor.js"]"
+            type="module"></script>
+
+    <script src="js/downloadHelper.js"></script>
+
 </body>
 
 </html>
@@ -28,5 +34,7 @@
     private HttpContext HttpContext { get; set; } = default!;
 
     private IComponentRenderMode? PageRenderMode =>
-        HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null;
+        HttpContext.AcceptsInteractiveRouting()
+            ? InteractiveServer
+            : null;
 }

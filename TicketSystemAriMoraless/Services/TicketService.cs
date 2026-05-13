@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ClosedXML.Excel;
+using Microsoft.EntityFrameworkCore;
 using TicketSystemAriMoraless.Data;
 using TicketSystemAriMoraless.Enums;
 using System.Security.Claims;
@@ -212,5 +213,75 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
         return await context.Users
             .OrderBy(u => u.Email)
             .ToListAsync();
+    }
+
+    public async Task<byte[]> GenerateExcelReportAsync()
+    {
+        using var context = dbFactory.CreateDbContext();
+
+        var tickets = await context.Tickets
+            .Include(t => t.Author)
+            .Include(t => t.Technician)
+            .Include(t => t.Category)
+            .ToListAsync();
+
+        using var workbook = new XLWorkbook();
+
+        var worksheet = workbook.Worksheets.Add("Resumen Tickets");
+
+        var headers = new[]
+        {
+            "ID",
+            "Title",
+            "Category",
+            "Priority",
+            "Status",
+            "Created",
+            "Resolved",
+            "Resolution Days",
+            "Author",
+            "Technician"
+        };
+
+        for (int i = 0; i < headers.Length; i++)
+        {
+            worksheet.Cell(1, i + 1).Value = headers[i];
+            worksheet.Cell(1, i + 1).Style.Font.Bold = true;
+            worksheet.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.LightGray;
+        }
+
+        int row = 2;
+
+        foreach (var t in tickets)
+        {
+            worksheet.Cell(row, 1).Value = t.Id;
+            worksheet.Cell(row, 2).Value = t.Title;
+            worksheet.Cell(row, 3).Value = t.Category?.Name ?? "N/A";
+            worksheet.Cell(row, 4).Value = t.Priority.ToString();
+            worksheet.Cell(row, 5).Value = t.Status.ToString();
+            worksheet.Cell(row, 6).Value = t.CreatedAt;
+
+            if (t.Status == TicketStatus.Resolved && t.UpdatedAt.HasValue)
+            {
+                worksheet.Cell(row, 7).Value = t.UpdatedAt.Value;
+
+                var duration = t.UpdatedAt.Value - t.CreatedAt;
+
+                worksheet.Cell(row, 8).Value = Math.Round(duration.TotalDays, 2);
+            }
+
+            worksheet.Cell(row, 9).Value = t.Author?.Email ?? "N/A";
+            worksheet.Cell(row, 10).Value = t.Technician?.Email ?? "Unassigned";
+
+            row++;
+        }
+
+        worksheet.Columns().AdjustToContents();
+
+        using var stream = new MemoryStream();
+
+        workbook.SaveAs(stream);
+
+        return stream.ToArray();
     }
 }

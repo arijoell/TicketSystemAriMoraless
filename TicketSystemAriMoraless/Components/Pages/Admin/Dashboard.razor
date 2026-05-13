@@ -1,16 +1,26 @@
 ﻿@page "/admin/dashboard"
+
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.JSInterop
 @using TicketSystemAriMoraless.Data
 @using TicketSystemAriMoraless.Enums
 @using TicketSystemAriMoraless.Models
+
 @inject TicketSystemAriMoraless.Services.TicketService TicketService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 @attribute [Authorize(Roles = Roles.Admin)]
 
-<h3 class="mb-3">Admin Dashboard</h3>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Admin Dashboard</h3>
 
-<!-- 🔥 CARDS DE ESTADISTICAS -->
+    <button class="btn btn-outline-success"
+            @onclick="ExportToExcel">
+        Exportar Reporte SLA
+    </button>
+</div>
+
 <div class="row mb-4">
     <div class="col-md-3">
         <div class="card bg-primary text-white">
@@ -49,7 +59,6 @@
     </div>
 </div>
 
-<!-- 🔥 TABLA -->
 <table class="table table-hover">
     <thead class="table-light">
         <tr>
@@ -61,15 +70,17 @@
             <th>Actions</th>
         </tr>
     </thead>
+
     <tbody>
         @foreach (var ticket in allTickets)
         {
             <tr>
                 <td>@ticket.Title</td>
+
                 <td>@ticket.Author?.Email</td>
+
                 <td>@ticket.Category?.Name</td>
 
-                <!-- 🔥 STATUS BONITO -->
                 <td>
                     <span class="badge @GetStatusBadge(ticket.Status)">
                         @ticket.Status
@@ -114,6 +125,22 @@
     {
         allTickets = await TicketService.GetAllTicketsAsync();
         stats = await TicketService.GetTicketStatsAsync();
+    }
+
+    private async Task ExportToExcel()
+    {
+        var excelData = await TicketService.GenerateExcelReportAsync();
+
+        var base64 =
+            Convert.ToBase64String(excelData);
+
+        var fileName =
+            $"Reporte_Tickets_{DateTime.Now:yyyyMMdd}.xlsx";
+
+        await JSRuntime.InvokeVoidAsync(
+            "downloadFile",
+            fileName,
+            base64);
     }
 
     void Manage(int id)
