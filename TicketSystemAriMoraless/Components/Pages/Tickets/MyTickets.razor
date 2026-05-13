@@ -1,8 +1,10 @@
 ﻿@page "/tickets/my-list"
 
+@using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using TicketSystemAriMoraless.Data
+@using TicketSystemAriMoraless.Enums
 @using TicketSystemAriMoraless.Models
 @using TicketSystemAriMoraless.Services
 
@@ -24,6 +26,7 @@ else
         <thead>
             <tr>
                 <th>Title</th>
+                <th>Role</th>
                 <th>Status</th>
                 <th>Priority</th>
                 <th>Action</th>
@@ -31,15 +34,28 @@ else
         </thead>
 
         <tbody>
-
             @foreach (var ticket in userTickets)
             {
                 <tr>
-
                     <td>@ticket.Title</td>
 
                     <td>
-                        <span class="badge bg-secondary">
+                        @if (ticket.AuthorId == currentUserId && ticket.TechnicianId == currentUserId)
+                        {
+                            <span class="badge bg-dark">Author & Technician</span>
+                        }
+                        else if (ticket.AuthorId == currentUserId)
+                        {
+                            <span class="badge bg-secondary">Author</span>
+                        }
+                        else if (ticket.TechnicianId == currentUserId)
+                        {
+                            <span class="badge bg-info text-dark">Assigned</span>
+                        }
+                    </td>
+
+                    <td>
+                        <span class="badge @GetStatusClass(ticket.Status)">
                             @ticket.Status
                         </span>
                     </td>
@@ -52,26 +68,38 @@ else
                             Work on it
                         </button>
                     </td>
-
                 </tr>
             }
-
         </tbody>
     </table>
 }
 
 @code {
+    private List<Ticket>? userTickets = new();
 
-    private List<Ticket>? userTickets;
+    private string currentUserId = "";
 
     protected override async Task OnInitializedAsync()
     {
-        var authState =
-            await AuthProvider.GetAuthenticationStateAsync();
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
 
-        userTickets =
-            await TicketService.GetTicketsForUserAsync(authState.User);
+        currentUserId =
+            authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
+
+        if (!string.IsNullOrEmpty(currentUserId))
+        {
+            userTickets =
+                await TicketService.GetMyWorkAndRequestsAsync(currentUserId);
+        }
     }
+
+    private string GetStatusClass(TicketStatus status) => status switch
+    {
+        TicketStatus.Open => "bg-info text-dark",
+        TicketStatus.InProgress => "bg-warning text-dark",
+        TicketStatus.Resolved => "bg-success",
+        _ => "bg-secondary"
+    };
 
     void GoToManage(int id)
     {

@@ -51,6 +51,19 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
         }
     }
 
+    public async Task<List<Ticket>> GetMyWorkAndRequestsAsync(string userId)
+    {
+        using var context = dbFactory.CreateDbContext();
+
+        return await context.Tickets
+            .Include(t => t.Category)
+            .Include(t => t.Author)
+            .Include(t => t.Technician)
+            .Where(t => t.AuthorId == userId || t.TechnicianId == userId)
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync();
+    }
+
     public async Task<List<Ticket>> GetAllTicketsAsync()
     {
         using var context = dbFactory.CreateDbContext();
@@ -118,19 +131,43 @@ public class TicketService(IDbContextFactory<ApplicationDbContext> dbFactory)
             .ToListAsync();
     }
 
-    public async Task UpdateTicketStatusAsync(int ticketId, TicketStatus newStatus, string? technicianId = null)
+    public async Task UpdateTicketStatusAsync(int ticketId, TicketStatus newStatus, string? technicianId = null, string? performerId = null)
     {
         using var context = dbFactory.CreateDbContext();
 
         var ticket = await context.Tickets.FindAsync(ticketId);
         if (ticket == null) return;
 
-        ticket.Status = newStatus;
+        var oldStatus = ticket.Status;
 
         if (!string.IsNullOrEmpty(technicianId))
+        {
             ticket.TechnicianId = technicianId;
+        }
 
+        ticket.Status = newStatus;
         ticket.UpdatedAt = DateTime.UtcNow;
+
+        string systemMessage;
+
+        if (!string.IsNullOrEmpty(technicianId) && oldStatus == newStatus)
+        {
+            systemMessage = "[SYSTEM] Technician assigned to this ticket.";
+        }
+        else
+        {
+            systemMessage = $"[SYSTEM] Status changed from {oldStatus} to {newStatus}.";
+        }
+
+        var systemComment = new TicketComment
+        {
+            TicketId = ticketId,
+            UserId = performerId ?? ticket.AuthorId,
+            Content = systemMessage,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        context.TicketComments.Add(systemComment);
 
         await context.SaveChangesAsync();
     }
