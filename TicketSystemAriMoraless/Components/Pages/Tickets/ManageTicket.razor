@@ -1,11 +1,14 @@
 ﻿@page "/tickets/manage/{TicketId:int}"
 
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using TicketSystemAriMoraless.Data
 @using TicketSystemAriMoraless.Enums
 @using TicketSystemAriMoraless.Models
 @using TicketSystemAriMoraless.Services
+
+@attribute [Authorize]
 
 @inject TicketService TicketService
 @inject NavigationManager Navigation
@@ -26,7 +29,7 @@
 }
 else
 {
-    <div class="card p-4">
+    <div class="card p-4 mb-5">
 
         <h4>@ticket.Title</h4>
 
@@ -79,63 +82,73 @@ else
             Send
         </button>
 
-        <hr />
+        <AuthorizeView Roles="@($"{Roles.Admin},{Roles.Technician}")">
+            <Authorized>
 
-        <h5>Asignar Técnico</h5>
+                <hr />
 
-        <select class="form-select" @bind="selectedTechId">
+                <h5>Asignar Técnico</h5>
 
-            <option value="">
-                -- Selecciona técnico --
-            </option>
+                <select class="form-select" @bind="selectedTechId">
 
-            @foreach (var tech in technicians)
-            {
-                <option value="@tech.Id">
-                    @tech.Email
-                </option>
-            }
+                    <option value="">
+                        -- Selecciona técnico --
+                    </option>
 
-        </select>
+                    @foreach (var tech in technicians)
+                    {
+                        <option value="@tech.Id">
+                            @tech.Email
+                        </option>
+                    }
+
+                </select>
+
+                <br />
+
+                <button class="btn btn-success"
+                        @onclick="Assign">
+                    Asignar
+                </button>
+
+                <hr />
+
+                <h5>Cambiar Estado</h5>
+
+                @if (ticket.Status == TicketStatus.Open)
+                {
+                    <button class="btn btn-warning"
+                            @onclick="() => UpdateStatus(TicketStatus.InProgress)">
+                        Start Work
+                    </button>
+                }
+
+                @if (ticket.Status == TicketStatus.InProgress)
+                {
+                    <button class="btn btn-success"
+                            @onclick="() => UpdateStatus(TicketStatus.Resolved)">
+                        Mark as Resolved
+                    </button>
+                }
+
+                @if (ticket.Status == TicketStatus.Resolved)
+                {
+                    <div class="alert alert-info mt-3">
+                        This ticket is closed.
+                    </div>
+
+                    <button class="btn btn-secondary"
+                            @onclick="() => UpdateStatus(TicketStatus.Open)">
+                        Re-open
+                    </button>
+                }
+
+            </Authorized>
+        </AuthorizeView>
 
         <br />
-
-        <button class="btn btn-success"
-                @onclick="Assign">
-            Asignar
-        </button>
-
-        <hr />
-
-        <h5>Cambiar Estado</h5>
-
-        @if (ticket.Status == TicketStatus.Open)
-        {
-            <button class="btn btn-warning"
-                    @onclick="() => UpdateStatus(TicketStatus.InProgress)">
-                Start Work
-            </button>
-        }
-
-        @if (ticket.Status == TicketStatus.InProgress)
-        {
-            <button class="btn btn-success"
-                    @onclick="() => UpdateStatus(TicketStatus.Resolved)">
-                Mark as Resolved
-            </button>
-        }
-
-        @if (ticket.Status == TicketStatus.Resolved)
-        {
-            <div class="alert alert-info mt-3">
-                This ticket is closed.
-            </div>
-
-            <button class="btn btn-secondary"
-                    @onclick="() => UpdateStatus(TicketStatus.Open)">
-                Re-open
-            </button>
-        }
+        <br />
+        <br />
 
     </div>
 }
@@ -168,6 +181,15 @@ else
             user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
 
         await LoadData();
+
+        bool isAdminOrTech =
+            user.IsInRole(Roles.Admin) ||
+            user.IsInRole(Roles.Technician);
+
+        if (!isAdminOrTech && ticket?.AuthorId != currentUserId)
+        {
+            Navigation.NavigateTo("/tickets/my");
+        }
     }
 
     private async Task LoadData()

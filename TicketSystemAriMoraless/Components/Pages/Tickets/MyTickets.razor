@@ -29,36 +29,48 @@ else
                 <th>Action</th>
             </tr>
         </thead>
+
         <tbody>
+
             @foreach (var ticket in userTickets)
             {
                 <tr>
+
                     <td>@ticket.Title</td>
-                    <td><span class="badge bg-secondary">@ticket.Status</span></td>
-                    <td>@ticket.Priority</td>
+
                     <td>
-                        <AuthorizeView Roles="Technician,Admin">
-                            <Authorized>
-                                <button class="btn btn-sm btn-success"
-                                        @onclick="() => GoToManage(ticket.Id)">
-                                    Work on it
-                                </button>
-                            </Authorized>
-                        </AuthorizeView>
+                        <span class="badge bg-secondary">
+                            @ticket.Status
+                        </span>
                     </td>
+
+                    <td>@ticket.Priority</td>
+
+                    <td>
+                        <button class="btn btn-sm btn-success"
+                                @onclick="() => GoToManage(ticket.Id)">
+                            Work on it
+                        </button>
+                    </td>
+
                 </tr>
             }
+
         </tbody>
     </table>
 }
 
 @code {
+
     private List<Ticket>? userTickets;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthProvider.GetAuthenticationStateAsync();
-        userTickets = await TicketService.GetTicketsForUserAsync(authState.User);
+        var authState =
+            await AuthProvider.GetAuthenticationStateAsync();
+
+        userTickets =
+            await TicketService.GetTicketsForUserAsync(authState.User);
     }
 
     void GoToManage(int id)
