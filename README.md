@@ -2,17 +2,13 @@
 
 ## 📌 Descripción
 
-Support Ticket System es una aplicación web desarrollada en **Blazor Web App** que permite a los usuarios crear y gestionar tickets de soporte técnico.
+Ticket System AriMoraless es una aplicación web desarrollada en **Blazor Web App** para la administración de tickets de soporte técnico dentro de un entorno organizacional.
 
-El sistema simula un entorno organizacional donde:
-
-* Los empleados reportan problemas
-* Los administradores gestionan los tickets
-* Los técnicos trabajan los tickets asignados
+El sistema permite que los empleados reporten incidencias técnicas, mientras que los administradores asignan técnicos y supervisan el flujo completo de soporte. Los técnicos pueden trabajar los tickets asignados, actualizar estados y mantener comunicación directa con los usuarios mediante un sistema integrado de comentarios.
 
 ---
 
-## 🚀 Tecnologías Utilizadas
+# 🚀 Tecnologías Utilizadas
 
 * Visual Studio 2026
 * .NET 10
@@ -22,221 +18,256 @@ El sistema simula un entorno organizacional donde:
 * Entity Framework Core
 * SQL Server (LocalDB)
 * Bootstrap 5
+* ClosedXML
+* JavaScript Interop
 * Git y GitHub
 
 ---
 
-## 🔐 Autenticación
+# 🔐 Sistema de Autenticación
 
 * Registro de usuarios
-* Login
-* Manejo de sesiones con ASP.NET Identity
-* Control de acceso por roles
+* Inicio de sesión
+* Manejo de sesiones
+* ASP.NET Core Identity
+* Control de acceso basado en roles (RBAC)
 
 ---
 
-## 🎫 Sistema de Tickets
+# 👤 Roles del Sistema
 
-* Crear tickets
-* Seleccionar categoría
-* Guardado en base de datos
+## 🔴 Admin
+
+* Acceso completo al sistema
+* Gestión de usuarios
+* Dashboard administrativo
 * Asignación de técnicos
-* Cambio de estado del ticket
+* Exportación de reportes Excel
+
+## 🔵 Technician
+
+* Visualización de tickets asignados
+* Manejo de estados
+* Comunicación con empleados
+
+## 🟢 Employee
+
+* Creación de tickets
+* Seguimiento de solicitudes
+* Comunicación mediante comentarios
 
 ---
 
-## 🗂 Categorías
+# 🎫 Sistema de Tickets
 
-* Hardware
-* Software
-* Network
-
----
-
-## 👤 Roles del Sistema
-
-* **Admin**
-* **Technician**
-* **Employee**
-
-Los roles se gestionan mediante la tabla intermedia `AspNetUserRoles`.
-
----
-
-## 🚀 Funcionalidades Módulo 6
-
-### 👑 Panel Administrativo
-
-* Visualización de todos los tickets en el sistema
-* Acceso al **Admin Dashboard**
-* Asignación de técnicos a los tickets
-
-### 🧑‍🔧 Gestión de Tickets
-
-* Página **Manage Ticket**
+* Creación de tickets
+* Categorías dinámicas
+* Prioridades
 * Asignación de técnicos
-* Cambio de estado del ticket:
+* Estados del ticket:
 
   * Open
   * InProgress
   * Resolved
-
-### 📋 My Tickets
-
-* Página accesible para empleados y técnicos
-* Los empleados ven los tickets que crearon
-* Los técnicos ven los tickets asignados
-
-### 🔒 Control de Acceso por Roles
-
-* Uso de `AuthorizeView` para restringir funcionalidades
-* Admin → acceso completo
-* Technician → gestiona tickets asignados
-* Employee → solo crea y visualiza sus tickets
+* Manejo de comentarios
+* Bitácora automática del sistema
 
 ---
 
-## 📊 Funcionalidades Módulo 7
+# 💬 Sistema de Comunicación
 
-### 📈 Dashboard Administrativo
+El sistema implementa un canal de comunicación interno dentro de cada ticket.
 
-* Visualización de estadísticas en tiempo real:
+## Funcionalidades:
 
-  * Total de tickets
-  * Tickets abiertos / en progreso
-  * Tickets resueltos
-* Cards visuales con Bootstrap 5
-* Tabla con todos los tickets del sistema
+* Comentarios entre empleados y técnicos
+* Etiquetas visuales por rol
+* Historial cronológico
+* Mensajes automáticos del sistema
+* Registro de eventos importantes
 
-### 👥 User Management
+Ejemplos:
 
-* Página para administrar usuarios
-* Asignación dinámica de roles:
-
-  * Admin
-  * Technician
-  * Employee
-* Uso de `UserManager` para gestión de roles
-* Actualización en tiempo real sin recargar la página
+* Técnico asignado
+* Cambio de estado
+* Ticket resuelto
 
 ---
 
-## 🏗️ Funcionalidades Módulo 8
+# 📊 Dashboard Administrativo
 
-### 🔧 Refactorización del Proyecto
+El Dashboard permite:
 
-Se reorganizó la estructura del sistema para mejorar la mantenibilidad y escalabilidad:
-
-#### 📁 Nueva estructura:
-
-* **Models**
-
-  * Ticket
-  * Category
-
-* **Data**
-
-  * ApplicationDbContext
-  * ApplicationUser
-  * Roles
-
-* **Enums**
-
-  * TicketStatus
-
-* **Services**
-
-  * TicketService
-
-* **Components**
-
-  * Layout
-  * Pages (Admin, Tickets)
+* Visualizar todos los tickets
+* Ver estadísticas en tiempo real
+* Monitorear tickets abiertos y resueltos
+* Acceder a la gestión administrativa
+* Exportar reportes SLA en Excel
 
 ---
 
-### 🧠 Mejoras Implementadas
+# 📈 Sistema de Reportes
 
-* Separación de responsabilidades por carpetas
-* Corrección de namespaces en todo el proyecto
-* Centralización de directivas `@using` en `_Imports.razor`
-* Código más limpio y organizado
-* Validación completa del sistema tras refactorización
+Se implementó generación dinámica de reportes usando **ClosedXML**.
+
+## Reportes:
+
+* Exportación a Excel (.xlsx)
+* Tiempo de resolución de tickets
+* Tickets abiertos y resueltos
+* Técnicos asignados
+* Métricas SLA
 
 ---
 
-## 🔄 Flujo Completo del Sistema
+# 🏗️ Arquitectura del Proyecto
+
+El proyecto sigue principios de separación de responsabilidades (SoC).
+
+## 📁 Estructura
+
+### /Data
+
+Contiene:
+
+* ApplicationDbContext
+* ApplicationUser
+* Roles
+* Migraciones
+
+### /Models
+
+Contiene:
+
+* Ticket
+* Category
+* TicketComment
+
+### /Services
+
+Implementa:
+
+* TicketService
+* Lógica de negocio
+* Estadísticas
+* Reportes
+* Comunicación
+
+### /Components
+
+Contiene:
+
+* Layout
+* Navegación
+* Páginas Razor
+
+### /Components/Pages/Admin
+
+* Dashboard
+* UserManagement
+
+### /Components/Pages/Tickets
+
+* CreateTicket
+* MyTickets
+* ManageTicket
+
+### /Enums
+
+* TicketStatus
+* TicketPriority
+
+### /wwwroot
+
+Archivos estáticos:
+
+* CSS
+* JavaScript
+* downloadHelper.js
+
+---
+
+# 🔄 Flujo del Sistema
 
 1. El empleado crea un ticket
-2. El administrador lo visualiza en el Dashboard
+2. El administrador visualiza el ticket
 3. El administrador asigna un técnico
-4. El técnico accede a "My Tickets"
-5. El técnico trabaja el ticket
-6. El técnico cambia el estado del ticket
+4. El técnico recibe el ticket
+5. Se inicia comunicación interna
+6. El técnico cambia estados
+7. El ticket se resuelve
+8. El sistema registra eventos automáticos
 
 ---
 
-## 🗄️ Base de Datos
+# 🗄️ Base de Datos
 
-Se utilizó SQL Server con Entity Framework Core.
+El sistema utiliza SQL Server con Entity Framework Core.
 
-### Tablas principales:
+## Tablas principales:
 
-* `AspNetUsers`
-* `AspNetRoles`
-* `AspNetUserRoles`
-* `Tickets`
-* `Categories`
-
----
-
-## 📸 Evidencia del Sistema
-
-El sistema fue probado con:
-
-* Login como Admin, Technician y Employee
-* Creación de tickets
-* Asignación de roles
-* Cambio de estado de tickets
-* Visualización en Dashboard
-* Gestión de usuarios en User Management
-* Validación de datos en SQL Server
+* AspNetUsers
+* AspNetRoles
+* AspNetUserRoles
+* Tickets
+* Categories
+* TicketComments
 
 ---
 
-## ▶️ Ejecución del Proyecto
+# 📸 Validaciones y Evidencias
 
-### Requisitos
+El sistema fue probado mediante:
+
+* Login con múltiples roles
+* Creación masiva de tickets
+* Comunicación entre usuarios
+* Dashboard administrativo
+* Gestión de roles
+* Exportación de Excel
+* Persistencia de datos
+* Validación en SQL Server
+* Seguridad basada en roles
+
+---
+
+# ▶️ Ejecución del Proyecto
+
+## Requisitos
 
 * Visual Studio 2026
 * .NET 10 SDK
 * SQL Server LocalDB
 
-### Ejecutar en Visual Studio
+## Pasos
 
-1. Abrir el proyecto
-2. Ejecutar migraciones si es necesario
-3. Presionar `F5`
+1. Clonar el repositorio
+2. Abrir la solución en Visual Studio
+3. Restaurar paquetes NuGet
+4. Ejecutar migraciones
+5. Presionar F5
 
 ---
 
-## 📂 Repositorio
+# 📂 Repositorio
 
 GitHub:
-👉 https://github.com/arijoel/TicketSystemAriMoraless
+https://github.com/arijoell/TicketSystemAriMoraless
 
 ---
 
-## 👨‍💻 Autor
+# 👨‍💻 Autor
 
-**Ari Joel Morales Torres**
+Ari Joel Morales Torres
+
 Universidad de Puerto Rico - Recinto de Ponce
+
 Bachillerato en Ciencias en Computadoras
 
 ---
 
-## 📅 Curso
+# 📅 Curso
 
 Estructura de Datos / Sistemas de Información
-Módulos 6, 7 y 8 - Sistema de Tickets Completo
 
+Proyecto Final — Sistema Completo de Gestión de Tickets
