@@ -54,15 +54,10 @@ else
                 @foreach (var c in comments)
                 {
                     <div class="mb-3">
-
                         <b>@c.User?.Email</b>
-
                         <br />
-
                         <small>@c.CreatedAt.ToLocalTime()</small>
-
                         <p>@c.Content</p>
-
                     </div>
                 }
             }
@@ -87,37 +82,34 @@ else
 
                 <hr />
 
-                <h5>Asignar Técnico</h5>
+                @if (ticket.Status != TicketStatus.Resolved)
+                {
+                    <h5>Asignar Técnico</h5>
 
-                <select class="form-select" @bind="selectedTechId">
+                    <select class="form-select" @bind="selectedTechId">
+                        <option value="">-- Selecciona técnico --</option>
 
-                    <option value="">
-                        -- Selecciona técnico --
-                    </option>
+                        @foreach (var tech in technicians)
+                        {
+                            <option value="@tech.Id">@tech.Email</option>
+                        }
+                    </select>
 
-                    @foreach (var tech in technicians)
-                    {
-                        <option value="@tech.Id">
-                            @tech.Email
-                        </option>
-                    }
+                    <br />
 
-                </select>
+                    <button class="btn btn-success w-100"
+                            @onclick="Assign">
+                        Asignar
+                    </button>
 
-                <br />
-
-                <button class="btn btn-success"
-                        @onclick="Assign">
-                    Asignar
-                </button>
-
-                <hr />
+                    <hr />
+                }
 
                 <h5>Cambiar Estado</h5>
 
                 @if (ticket.Status == TicketStatus.Open)
                 {
-                    <button class="btn btn-warning"
+                    <button class="btn btn-warning w-100 mb-2"
                             @onclick="() => UpdateStatus(TicketStatus.InProgress)">
                         Start Work
                     </button>
@@ -125,7 +117,7 @@ else
 
                 @if (ticket.Status == TicketStatus.InProgress)
                 {
-                    <button class="btn btn-success"
+                    <button class="btn btn-success w-100 mb-2"
                             @onclick="() => UpdateStatus(TicketStatus.Resolved)">
                         Mark as Resolved
                     </button>
@@ -134,13 +126,8 @@ else
                 @if (ticket.Status == TicketStatus.Resolved)
                 {
                     <div class="alert alert-info mt-3">
-                        This ticket is closed.
+                        This ticket is closed. No more action buttons are available.
                     </div>
-
-                    <button class="btn btn-secondary"
-                            @onclick="() => UpdateStatus(TicketStatus.Open)">
-                        Re-open
-                    </button>
                 }
 
             </Authorized>
@@ -154,27 +141,20 @@ else
 }
 
 @code {
-
     [Parameter] public int TicketId { get; set; }
 
     private Ticket? ticket;
-
     private List<ApplicationUser> technicians = new();
-
     private List<TicketComment> comments = new();
 
     private string selectedTechId = "";
-
     private string newCommentContent = "";
-
     private string feedbackMessage = "";
-
     private string currentUserId = "";
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthProvider.GetAuthenticationStateAsync();
-
         var user = authState.User;
 
         currentUserId =
@@ -188,16 +168,14 @@ else
 
         if (!isAdminOrTech && ticket?.AuthorId != currentUserId)
         {
-            Navigation.NavigateTo("/tickets/my");
+            Navigation.NavigateTo("/tickets/my-list");
         }
     }
 
     private async Task LoadData()
     {
         ticket = await TicketService.GetTicketByIdAsync(TicketId);
-
         technicians = await TicketService.GetTechniciansAsync();
-
         comments = await TicketService.GetCommentsAsync(TicketId);
 
         if (ticket?.TechnicianId != null)
@@ -222,9 +200,7 @@ else
         await TicketService.AddCommentAsync(comment);
 
         newCommentContent = "";
-
         feedbackMessage = "Comment posted successfully.";
-
         comments = await TicketService.GetCommentsAsync(TicketId);
     }
 
@@ -234,22 +210,26 @@ else
         {
             await TicketService.UpdateTicketStatusAsync(
                 TicketId,
-                TicketStatus.InProgress,
-                selectedTechId
+                TicketStatus.Open,
+                selectedTechId,
+                currentUserId
             );
 
             feedbackMessage = "Technician assigned.";
-
             await LoadData();
         }
     }
 
     async Task UpdateStatus(TicketStatus status)
     {
-        await TicketService.UpdateTicketStatusAsync(TicketId, status);
+        await TicketService.UpdateTicketStatusAsync(
+            TicketId,
+            status,
+            null,
+            currentUserId
+        );
 
         feedbackMessage = $"Ticket marked as {status}.";
-
         await LoadData();
     }
 }
